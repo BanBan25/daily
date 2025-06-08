@@ -29,7 +29,7 @@ jobs:
         SEATABLE_SERVER_URL: ${{ secrets.SEATABLE_SERVER_URL }}
         SEATABLE_API_TOKEN: ${{ secrets.SEATABLE_API_TOKEN }}
         SEATABLE_TABLE: ${{ secrets.SEATABLE_TABLE }}
-      run: python stock_crawler.py
+      run: python main.py
       
     - name: Notify on failure
       if: ${{ failure() }}
