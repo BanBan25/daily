@@ -2,31 +2,34 @@ name: Daily Stock Data Crawler
 
 on:
   schedule:
-    # 每天 UTC 时间 10:00 运行 (北京时间 18:00)
-    - cron: '30 7 * * *'
-  workflow_dispatch:  # 允许手动触发
+    # 每天 UTC 时间 7:30 运行（北京时间 15:30，可根据需求调整 cron 表达式）
+    - cron: '30 7 * * *'  
+  workflow_dispatch:  # 允许手动触发执行
 
 jobs:
   spiderdata:
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-latest  # 使用 GitHub 提供的 Ubuntu 环境
     env:
-      SEATABLE_API_TOKEN: ${{ secrets.SEATABLE_API_TOKEN }}
+      SEATABLE_API_TOKEN: ${{ secrets.SEATABLE_API_TOKEN }}  # 从 Secrets 读取 Token
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Checkout code  
+      uses: actions/checkout@v4  # 拉取仓库代码到运行环境
+    
+    - name: Set up Python  
+      uses: actions/setup-python@v5  # 配置 Python 环境
       with:
-        python-version: '3.8'
-        
-    - name: Install dependencies
+        python-version: '3.8'  # 指定 Python 版本
+    
+    - name: Install Chromium  # 新增步骤：安装系统级 Chromium 浏览器
       run: |
-        python -m pip install --upgrade pip
-        pip install DrissionPage seatable-api
-        
-    - name: Run stock crawler
-      run: python main.py
-      
+        sudo apt update  # 更新 Ubuntu 软件源
+        sudo apt install -y chromium-browser  # 安装 Chromium（带依赖）
+    
+    - name: Install dependencies  
+      run: |
+        python -m pip install --upgrade pip  # 升级 pip
+        pip install DrissionPage seatable-api  # 安装 Python 依赖包
+    
+    - name: Run stock crawler  
+      run: python main.py  # 执行爬虫脚本
