@@ -8,8 +8,8 @@ from datetime import date
 def fetch_stock_data(url):
     # 配置浏览器选项 - 添加无头环境必要参数
     co = ChromiumOptions().headless()  # 无头模式
-    # co.set_argument('--no-sandbox')
-    # co.set_argument('--disable-dev-shm-usage')
+    co.set_argument('--no-sandbox')
+    co.set_argument('--disable-dev-shm-usage')
 
     browser = Chromium(co)
     page = browser.latest_tab
@@ -82,9 +82,9 @@ if __name__ == "__main__":
     TABLE_NAME = "Table1"  # 指定位置
 
     # 如果API_TOKEN不存在，则退出
-    # if not API_TOKEN:
-    #     print("错误: SEATABLE_API_TOKEN 环境变量未设置")
-    #     exit(1)
+    if not API_TOKEN:
+        print("错误: SEATABLE_API_TOKEN 环境变量未设置")
+        exit(1)
 
     browser, stock_trs = fetch_stock_data(URL)
     parsed_data = parse_stock_data(stock_trs)
