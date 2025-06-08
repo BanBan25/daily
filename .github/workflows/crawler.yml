@@ -2,9 +2,8 @@ name: Stock Data Pipeline
 
 on:
   schedule:
-    # 每天北京时间上午9点运行 (UTC+8的0点)
-    - cron: '0 16 * * *'
-  workflow_dispatch:  # 允许手动触发
+    - cron: '0 16 * * *'  # 每天UTC时间16:00 (北京时间00:00)
+  workflow_dispatch:
 
 jobs:
   scrape-and-upload:
@@ -32,11 +31,11 @@ jobs:
     - name: Run stock data pipeline
       env:
         SEATABLE_API_TOKEN: ${{ secrets.SEATABLE_API_TOKEN }}
-      run: python main.py  # 替换为实际脚本文件名
+      run: python main.py  # 替换为你的脚本文件名
 
-    - name: Archive logs (optional)
-      if: always()  # 无论成功失败都执行
-      uses: actions/upload-artifact@v3
+    - name: Archive logs
+      if: always()
+      uses: actions/upload-artifact@v4  # 更新到v4版本
       with:
         name: execution-logs
         path: |
