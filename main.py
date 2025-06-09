@@ -84,9 +84,9 @@ if __name__ == "__main__":
     TABLE_NAME = "Table1"  # 指定位置
 
     # 如果API_TOKEN不存在，则退出
-    # if not API_TOKEN:
-    #     print("错误: SEATABLE_API_TOKEN 环境变量未设置")
-    #     exit(1)
+    if not API_TOKEN:
+        print("错误: SEATABLE_API_TOKEN 环境变量未设置")
+        exit(1)
 
     browser, stock_trs = fetch_stock_data(URL)
     parsed_data = parse_stock_data(stock_trs)
