@@ -5,25 +5,104 @@ from seatable_api import Base
 from datetime import date
 
 
+# def fetch_stock_data(url):
+#     # 配置浏览器选项 - 添加无头环境必要参数
+#     co = ChromiumOptions().headless()  # 无头模式
+#     co.set_argument('--no-sandbox')
+#     co.set_argument('--disable-dev-shm-usage')
+# 
+#     browser = Chromium(co)
+#     page = browser.latest_tab
+#     page.get(url)
+# 
+#     # 添加等待，确保页面加载完成
+#     time.sleep(15)  # 等待5秒，确保数据加载
+# 
+#     trs = page.eles('css:#ggmx > div.ggmxcont > div.ggmx.clearfix > div.leftcol.fl > div > div > table > tbody > tr')
+#     if not trs:
+#         print('无数据')
+# 
+#     return browser, trs  # 返回浏览器对象和爬取的数据
+
+
 def fetch_stock_data(url):
-    # 配置浏览器选项 - 添加无头环境必要参数
-    co = ChromiumOptions().headless()  # 无头模式
+    # 配置浏览器选项
+    co = ChromiumOptions().headless()
     co.set_argument('--no-sandbox')
     co.set_argument('--disable-dev-shm-usage')
+    # co.set_argument('--disable-gpu')  # 添加GPU禁用选项
+    # co.set_argument('--disable-software-rasterizer')  # 禁用软件光栅化
+    # co.set_argument('--disable-extensions')  # 禁用扩展
+    # co.set_argument('--disable-infobars')  # 禁用信息栏
+    # co.set_argument('--disable-notifications')  # 禁用通知
+    # co.set_argument('--disable-popup-blocking')  # 禁用弹出阻止
+    # co.set_argument('--disable-dev-shm-usage')  # 禁用/dev/shm使用
+    # co.set_argument('--remote-debugging-port=9222')  # 远程调试端口
+    # 
+    # # 反爬措施
+    # co.set_argument('--disable-blink-features=AutomationControlled')  # 禁用自动化控制特征
+    # co.set_argument(
+    #     'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36')  # 设置User-Agent
+    # 
+    # # 设置浏览器窗口大小
+    # co.set_argument('--window-size=1920,1080')  # 设置窗口大小
 
+    # 创建浏览器实例
     browser = Chromium(co)
     page = browser.latest_tab
-    page.get(url)
 
-    # 添加等待，确保页面加载完成
-    time.sleep(15)  # 等待5秒，确保数据加载
+    # 设置页面加载超时
+    page.set.timeouts(load=60)  # 60秒超时
 
-    trs = page.eles('css:#ggmx > div.ggmxcont > div.ggmx.clearfix > div.leftcol.fl > div > div > table > tbody > tr')
+    try:
+        print(f"🌐 正在访问: {url}")
+        page.get(url)
+        print("✅ 页面加载成功")
+    except Exception as e:
+        print(f"❌ 页面加载失败: {e}")
+        return browser, []
+
+    # 智能等待数据加载
+    print("⏳ 等待数据加载...")
+    try:
+        # 使用更可靠的等待方式
+        page.wait.load_start()  # 等待页面开始加载
+        page.wait.doc_loaded()  # 等待文档加载完成
+
+        # 等待特定元素出现
+        selector = '#ggmx > div.ggmxcont > div.ggmx.clearfix > div.leftcol.fl > div > div > table > tbody > tr'
+        if not page.wait.ele_displayed(selector, timeout=30):
+            print("❌ 数据表格未显示")
+            # 保存页面用于调试
+            page_html = page.html
+            with open("debug_page.html", "w", encoding="utf-8") as f:
+                f.write(page_html)
+            print("已保存页面到 debug_page.html")
+            return browser, []
+    except Exception as e:
+        print(f"❌ 等待数据超时: {e}")
+        return browser, []
+
+    # 获取数据行
+    trs = page.eles(selector)
+    print(f"🔍 找到 {len(trs)} 行数据")
+
     if not trs:
-        print('无数据')
-    
-    return browser, trs  # 返回浏览器对象和爬取的数据
+        print("⚠️ 未获取到数据，尝试滚动页面...")
+        # 尝试滚动到页面底部
+        page.scroll.to_bottom()
+        time.sleep(2)
+        trs = page.eles(selector)
+        print(f"滚动后找到 {len(trs)} 行数据")
 
+    if not trs:
+        print("❌ 仍然未获取到数据，保存页面用于分析")
+        page_html = page.html
+        with open("debug_page.html", "w", encoding="utf-8") as f:
+            f.write(page_html)
+        print("已保存页面到 debug_page.html")
+
+    return browser, trs
 
 def parse_stock_data(trs):
     data_list = []
