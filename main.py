@@ -13,11 +13,9 @@ def fetch_stock_data(url):
 
     browser = Chromium(co)
     page = browser.latest_tab
-    page.get(url)
-
-    # 添加等待，确保页面加载完成
+    page.set.load_mode.none() # 添加等待，确保页面加载完成
     # time.sleep(15)  # 等待5秒，确保数据加载
-    page.set.load_mode.none()
+    page.get(url)
     trs = page.eles('css:#ggmx > div.ggmxcont > div.ggmx.clearfix > div.leftcol.fl > div > div > table > tbody > tr')
     if not trs:
         print('无数据')
