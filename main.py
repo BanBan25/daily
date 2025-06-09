@@ -16,7 +16,7 @@ def fetch_stock_data(url):
     page.get(url)
 
     # 添加等待，确保页面加载完成
-    time.sleep(5)  # 等待5秒，确保数据加载
+    time.sleep(15)  # 等待5秒，确保数据加载
 
     trs = page.eles('css:#ggmx > div.ggmxcont > div.ggmx.clearfix > div.leftcol.fl > div > div > table > tbody > tr')
     return browser, trs  # 返回浏览器对象和爬取的数据
