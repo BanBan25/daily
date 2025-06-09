@@ -3,7 +3,7 @@ name: Daily Stock Data Crawler
 on:
   schedule:
     # 每天 UTC 时间 7:30 运行（北京时间 15:30，可根据需求调整 cron 表达式）
-    - cron: '37 4 * * *'  
+    - cron: '30 7 * * *'  
   workflow_dispatch:  # 允许手动触发执行
 
 jobs:
