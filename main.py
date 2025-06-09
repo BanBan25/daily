@@ -10,18 +10,18 @@ from datetime import date
 #     co = ChromiumOptions().headless()  # 无头模式
 #     co.set_argument('--no-sandbox')
 #     co.set_argument('--disable-dev-shm-usage')
-# 
+#
 #     browser = Chromium(co)
 #     page = browser.latest_tab
 #     page.get(url)
-# 
+#
 #     # 添加等待，确保页面加载完成
 #     time.sleep(15)  # 等待5秒，确保数据加载
-# 
+#
 #     trs = page.eles('css:#ggmx > div.ggmxcont > div.ggmx.clearfix > div.leftcol.fl > div > div > table > tbody > tr')
 #     if not trs:
 #         print('无数据')
-# 
+#
 #     return browser, trs  # 返回浏览器对象和爬取的数据
 
 
@@ -30,29 +30,24 @@ def fetch_stock_data(url):
     co = ChromiumOptions().headless()
     co.set_argument('--no-sandbox')
     co.set_argument('--disable-dev-shm-usage')
-    # co.set_argument('--disable-gpu')  # 添加GPU禁用选项
-    # co.set_argument('--disable-software-rasterizer')  # 禁用软件光栅化
-    # co.set_argument('--disable-extensions')  # 禁用扩展
-    # co.set_argument('--disable-infobars')  # 禁用信息栏
-    # co.set_argument('--disable-notifications')  # 禁用通知
-    # co.set_argument('--disable-popup-blocking')  # 禁用弹出阻止
-    # co.set_argument('--disable-dev-shm-usage')  # 禁用/dev/shm使用
-    # co.set_argument('--remote-debugging-port=9222')  # 远程调试端口
-    # 
-    # # 反爬措施
-    # co.set_argument('--disable-blink-features=AutomationControlled')  # 禁用自动化控制特征
-    # co.set_argument(
-    #     'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36')  # 设置User-Agent
-    # 
-    # # 设置浏览器窗口大小
-    # co.set_argument('--window-size=1920,1080')  # 设置窗口大小
+    co.set_argument('--disable-gpu')
+    co.set_argument('--disable-software-rasterizer')
+    co.set_argument('--disable-extensions')
+    co.set_argument('--disable-infobars')
+    co.set_argument('--disable-notifications')
+    co.set_argument('--disable-popup-blocking')
+    co.set_argument('--remote-debugging-port=9222')
+    co.set_argument('--disable-blink-features=AutomationControlled')
+    co.set_argument(
+        'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36')
+    co.set_argument('--window-size=1920,1080')
 
     # 创建浏览器实例
     browser = Chromium(co)
     page = browser.latest_tab
 
-    # 设置页面加载超时
-    page.set.timeouts(load=60)  # 60秒超时
+    # 修正参数名 loader
+    page.set.timeouts(loader=60)  # 60秒超时
 
     try:
         print(f"🌐 正在访问: {url}")
@@ -66,8 +61,8 @@ def fetch_stock_data(url):
     print("⏳ 等待数据加载...")
     try:
         # 使用更可靠的等待方式
-        page.wait.load_start()  # 等待页面开始加载
-        page.wait.doc_loaded()  # 等待文档加载完成
+        page.wait.load_start()
+        page.wait.doc_loaded()
 
         # 等待特定元素出现
         selector = '#ggmx > div.ggmxcont > div.ggmx.clearfix > div.leftcol.fl > div > div > table > tbody > tr'
@@ -89,7 +84,6 @@ def fetch_stock_data(url):
 
     if not trs:
         print("⚠️ 未获取到数据，尝试滚动页面...")
-        # 尝试滚动到页面底部
         page.scroll.to_bottom()
         time.sleep(2)
         trs = page.eles(selector)
