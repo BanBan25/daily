@@ -19,6 +19,9 @@ def fetch_stock_data(url):
     time.sleep(15)  # 等待5秒，确保数据加载
 
     trs = page.eles('css:#ggmx > div.ggmxcont > div.ggmx.clearfix > div.leftcol.fl > div > div > table > tbody > tr')
+    if not trs:
+        print('无数据')
+    
     return browser, trs  # 返回浏览器对象和爬取的数据
 
 
@@ -76,7 +79,7 @@ def upload_to_seatable(data_list, server_url, api_token, table_name):
 
 if __name__ == "__main__":
     print("🚀 开始执行爬虫")
-    
+
     URL = "https://data.10jqka.com.cn/market/longhu/"
     SERVER_URL = "https://cloud.seatable.cn/"
     # 从环境变量获取API_TOKEN
