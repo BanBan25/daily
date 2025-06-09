@@ -75,6 +75,8 @@ def upload_to_seatable(data_list, server_url, api_token, table_name):
 
 
 if __name__ == "__main__":
+    print("🚀 开始执行爬虫")
+    
     URL = "https://data.10jqka.com.cn/market/longhu/"
     SERVER_URL = "https://cloud.seatable.cn/"
     # 从环境变量获取API_TOKEN
@@ -90,3 +92,4 @@ if __name__ == "__main__":
     parsed_data = parse_stock_data(stock_trs)
     upload_to_seatable(parsed_data, SERVER_URL, API_TOKEN, TABLE_NAME)
     browser.quit()  # 关闭浏览器
+    print("👋 程序执行完毕")
