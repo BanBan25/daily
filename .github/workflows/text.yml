@@ -1,0 +1,9 @@
+name: 测试 Runner 是否可用
+on: 
+  workflow_dispatch:  # 允许手动触发测试
+jobs:
+  test:
+    runs-on: ubuntu-latest  # 指定 GitHub 托管 Runner（Ubuntu 系统）
+    steps:
+      - name: 打印系统信息
+        run: uname -a  # 输出系统信息，验证 Runner 能执行命令
