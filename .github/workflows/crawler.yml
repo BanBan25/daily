@@ -2,34 +2,105 @@ name: Daily Stock Data Crawler
 
 on:
   schedule:
-    # 每天 UTC 时间 7:30 运行（北京时间 15:30，可根据需求调整 cron 表达式）
     - cron: '30 7 * * *'  
-  workflow_dispatch:  # 允许手动触发执行
+  workflow_dispatch:
 
 jobs:
   spiderdata:
-    runs-on: ubuntu-latest  # 使用 GitHub 提供的 Ubuntu 环境
+    runs-on: ubuntu-latest
     env:
-      SEATABLE_API_TOKEN: ${{ secrets.SEATABLE_API_TOKEN }}  # 从 Secrets 读取 Token
+      SEATABLE_API_TOKEN: ${{ secrets.SEATABLE_API_TOKEN }}
     
     steps:
     - name: Checkout code  
-      uses: actions/checkout@v4  # 拉取仓库代码到运行环境
-    
+      uses: actions/checkout@v4
+
     - name: Set up Python  
-      uses: actions/setup-python@v5  # 配置 Python 环境
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.8'  # 指定 Python 版本
-    
-    - name: Install Chromium  # 新增步骤：安装系统级 Chromium 浏览器
+        python-version: '3.8'
+
+    - name: Install Chromium
       run: |
-        sudo apt update  # 更新 Ubuntu 软件源
-        sudo apt install -y chromium-browser  # 安装 Chromium（带依赖）
-    
+        echo "开始安装 Chromium..."
+        sudo apt update 2>&1 | tee apt-update.log
+        if [ $? -ne 0 ]; then
+          echo "❌ apt 更新失败，查看日志："
+          cat apt-update.log
+          exit 1
+        fi
+        
+        sudo apt install -y chromium-browser 2>&1 | tee chromium-install.log
+        if [ $? -ne 0 ]; then
+          echo "❌ Chromium 安装失败，查看日志："
+          cat chromium-install.log
+          exit 1
+        fi
+        
+        echo "验证 Chromium 版本："
+        chromium-browser --version || (echo "❌ Chromium 验证失败"; exit 1)
+        echo "✅ Chromium 安装成功"
+
     - name: Install dependencies  
       run: |
-        python -m pip install --upgrade pip  # 升级 pip
-        pip install DrissionPage seatable-api  # 安装 Python 依赖包
-    
+        echo "开始安装 Python 依赖..."
+        python -m pip install --upgrade pip 2>&1 | tee pip-upgrade.log
+        if [ $? -ne 0 ]; then
+          echo "❌ pip 升级失败，查看日志："
+          cat pip-upgrade.log
+          exit 1
+        fi
+        
+        pip install DrissionPage seatable-api 2>&1 | tee pip-install.log
+        if [ $? -ne 0 ]; then
+          echo "❌ Python 依赖安装失败，查看日志："
+          cat pip-install.log
+          exit 1
+        fi
+        
+        echo "验证依赖包："
+        python -c "import DrissionPage, seatable_api" 2>&1 | tee import-check.log
+        if [ $? -ne 0 ]; then
+          echo "❌ Python 依赖导入失败，查看日志："
+          cat import-check.log
+          exit 1
+        fi
+        echo "✅ 依赖安装成功"
+
     - name: Run stock crawler  
-      run: python main.py  # 执行爬虫脚本
+      run: |
+        echo "开始执行爬虫脚本..."
+        python main.py 2>&1 | tee crawler-output.log
+        EXIT_CODE=$?
+        
+        if [ $EXIT_CODE -eq 0 ]; then
+          echo "✅ 爬虫执行成功"
+        else
+          echo "❌ 爬虫执行失败 (退出码: $EXIT_CODE)，错误日志："
+          cat crawler-output.log
+          echo "------------------------"
+          echo "系统环境诊断信息："
+          echo "Python 版本: $(python --version)"
+          echo "Chromium 路径: $(which chromium-browser)"
+          chromium-browser --version
+          echo "------------------------"
+          exit $EXIT_CODE
+        fi
+
+    # 添加错误收集步骤（仅在失败时运行）
+    - name: Collect Debug Info on Failure
+      if: ${{ failure() }}
+      run: |
+        echo "================================"
+        echo "⚠️ 工作流失败，收集诊断信息："
+        echo "================================"
+        echo "当前工作目录内容："
+        ls -la
+        
+        echo "------------------------"
+        echo "环境变量："
+        printenv | sort
+        
+        echo "------------------------"
+        echo "Python 已安装包："
+        pip list
